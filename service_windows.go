@@ -306,8 +306,12 @@ func lowPrivMgr() (*mgr.Mgr, error) {
 }
 
 func lowPrivSvc(m *mgr.Mgr, name string) (*mgr.Service, error) {
+	name16p, err := syscall.UTF16PtrFromString(name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert '%s' to utf16 string: %w", name, err)
+	}
 	h, err := windows.OpenService(
-		m.Handle, syscall.StringToUTF16Ptr(name),
+		m.Handle, name16p,
 		windows.SERVICE_QUERY_CONFIG|windows.SERVICE_QUERY_STATUS|windows.SERVICE_START|windows.SERVICE_STOP)
 	if err != nil {
 		return nil, err
@@ -469,10 +473,8 @@ func (ws *windowsService) Run() error {
 		return err
 	}
 
-	sigChan := make(chan os.Signal)
-
+	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
-
 	<-sigChan
 
 	return ws.i.Stop(ws)

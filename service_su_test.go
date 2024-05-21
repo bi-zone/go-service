@@ -41,8 +41,7 @@ func TestMain(m *testing.M) {
 
 func TestInstallRunRestartStopRemove(t *testing.T) {
 	p := &program{}
-	reportDir := mustTempDir(t)
-	defer os.RemoveAll(reportDir)
+	reportDir := t.TempDir()
 
 	s := mustNewRunAsService(t, p, reportDir)
 	_ = s.Uninstall()
@@ -86,14 +85,6 @@ func runService() {
 	if err = s.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func mustTempDir(t *testing.T) string {
-	dir, err := ioutil.TempDir("", "servicetest")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return dir
 }
 
 func writeReport(reportDir string, action string) {
